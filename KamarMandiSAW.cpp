@@ -333,21 +333,21 @@ void drawScene(void)
 
     // Urinal 1 (left of divider)
     glColor3f(1.0f, 1.0f, 1.0f);
-    
+
     // Urinal back panel
     glPushMatrix();
     glTranslatef(250.0, 60.0, 5.0);
     glScalef(20.0, 50.0, 4.0);
     glutSolidCube(1.0);
     glPopMatrix();
-    
+
     // Urinal bowl
     glPushMatrix();
     glTranslatef(250.0, 45.0, 12.0);
     glScalef(16.0, 35.0, 10.0);
     glutSolidSphere(1.0, 20, 20);
     glPopMatrix();
-    
+
     // Urinal drain pipe
     glColor3f(0.8f, 0.8f, 0.8f);
     glPushMatrix();
@@ -355,7 +355,7 @@ void drawScene(void)
     glRotatef(90.0, 1.0, 0.0, 0.0);
     glutSolidCylinder(2.5, 30.0, 15, 15);
     glPopMatrix();
-    
+
     // Flush pipe
     glPushMatrix();
     glTranslatef(250.0, 85.0, 5.0);
@@ -366,21 +366,21 @@ void drawScene(void)
 
     // Urinal 2 (right of divider)
     glColor3f(1.0f, 1.0f, 1.0f);
-    
+
     // Urinal back panel
     glPushMatrix();
     glTranslatef(370.0, 60.0, 5.0);
     glScalef(20.0, 50.0, 4.0);
     glutSolidCube(1.0);
     glPopMatrix();
-    
+
     // Urinal bowl
     glPushMatrix();
     glTranslatef(370.0, 45.0, 12.0);
     glScalef(16.0, 35.0, 10.0);
     glutSolidSphere(1.0, 20, 20);
     glPopMatrix();
-    
+
     // Urinal drain pipe
     glColor3f(0.8f, 0.8f, 0.8f);
     glPushMatrix();
@@ -388,7 +388,7 @@ void drawScene(void)
     glRotatef(90.0, 1.0, 0.0, 0.0);
     glutSolidCylinder(2.5, 30.0, 15, 15);
     glPopMatrix();
-    
+
     // Flush pipe
     glPushMatrix();
     glTranslatef(370.0, 85.0, 5.0);
