@@ -1,13 +1,3 @@
-///////////////////////////////////
-// movingCameraCube.cpp
-//
-// OpenGL program to draw a rectangular prism with a moving camera.
-// Arrow keys rotate and move the camera.
-//
-// Based on square.cpp and spaceTravel.cpp by Sumanta Guha.
-//
-///////////////////////////////////
-
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
@@ -26,6 +16,12 @@ static float camY = 100.0;
 static float camZ = 400.0;
 static float angle = 0.0;
 
+// Door animation globals
+static float doorAngle = 0.0;
+static bool doorsOpen = false;
+static const float maxDoorAngle = 90.0;
+static const float doorSpeed = 5.0;
+
 // Light control globals
 static float lightIntensity = 1.5;
 static float ambientIntensity = 0.1;
@@ -39,6 +35,7 @@ void setup(void);
 void resize(int w, int h);
 void keyInput(unsigned char key, int x, int y);
 void specialKeyInput(int key, int x, int y);
+void animate(int value);
 
 // Moving camera (from spaceTravel.cpp)
 void setMovingCamera(float x, float y, float z, float angle)
@@ -76,10 +73,10 @@ void drawScene(void)
     GLfloat light_diffuse[] = { lightIntensity * 1.0f, lightIntensity * 1.0f, lightIntensity * 0.9f, 1.0 };
     GLfloat light_specular[] = { lightIntensity * 1.0f, lightIntensity * 1.0f, lightIntensity * 0.9f, 1.0 };
 
-    // Light 0 - Right stall area (x=185, aligned with right stall)
+    // Light 0 - Back row, left position
     if (lightsEnabled[0]) {
         glEnable(GL_LIGHT0);
-        GLfloat light0_position[] = { 185.0, 195.0, 290.0, 1.0 };
+        GLfloat light0_position[] = { 107.5, 195.0, 315.0, 1.0 };  // Back left
         glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
         glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
@@ -92,10 +89,10 @@ void drawScene(void)
         glDisable(GL_LIGHT0);
     }
 
-    // Light 1 - Middle stall area (x=62, left stall)
+    // Light 1 - Back row, center position
     if (lightsEnabled[1]) {
         glEnable(GL_LIGHT1);
-        GLfloat light1_position[] = { 62.0, 195.0, 290.0, 1.0 };
+        GLfloat light1_position[] = { 215.0, 195.0, 315.0, 1.0 };  // Back center
         glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
         glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
         glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
@@ -108,10 +105,10 @@ void drawScene(void)
         glDisable(GL_LIGHT1);
     }
 
-    // Light 2 - Player area, aligned with stalls (x=185, in front)
+    // Light 2 - Back row, right position
     if (lightsEnabled[2]) {
         glEnable(GL_LIGHT2);
-        GLfloat light2_position[] = { 185.0, 195.0, 100.0, 1.0 };
+        GLfloat light2_position[] = { 322.5, 195.0, 315.0, 1.0 };  // Back right
         glLightfv(GL_LIGHT2, GL_POSITION, light2_position);
         glLightfv(GL_LIGHT2, GL_AMBIENT, light_ambient);
         glLightfv(GL_LIGHT2, GL_DIFFUSE, light_diffuse);
@@ -124,10 +121,10 @@ void drawScene(void)
         glDisable(GL_LIGHT2);
     }
 
-    // Light 3 - Sink area, aligned with right stall light (x=185, near sink)
+    // Light 3 - Front row, left position
     if (lightsEnabled[3]) {
         glEnable(GL_LIGHT3);
-        GLfloat light3_position[] = { 90.0, 195.0, 30.0, 1.0 };
+        GLfloat light3_position[] = { 107.5, 195.0, 140.0, 1.0 };  // Front left
         glLightfv(GL_LIGHT3, GL_POSITION, light3_position);
         glLightfv(GL_LIGHT3, GL_AMBIENT, light_ambient);
         glLightfv(GL_LIGHT3, GL_DIFFUSE, light_diffuse);
@@ -140,10 +137,10 @@ void drawScene(void)
         glDisable(GL_LIGHT3);
     }
 
-    // Light 4 - Aligned with player and sink lights (x=62, in between)
+    // Light 4 - Front row, right position
     if (lightsEnabled[4]) {
         glEnable(GL_LIGHT4);
-        GLfloat light4_position[] = { 300.0, 195.0, 100.0, 1.0 };
+        GLfloat light4_position[] = { 322.5, 195.0, 140.0, 1.0 };  // Front right
         glLightfv(GL_LIGHT4, GL_POSITION, light4_position);
         glLightfv(GL_LIGHT4, GL_AMBIENT, light_ambient);
         glLightfv(GL_LIGHT4, GL_DIFFUSE, light_diffuse);
@@ -270,55 +267,8 @@ void drawScene(void)
     glEnd();
 
 
-    // Indent
-    glColor3f(1.0f, 0.98f, 0.82f);
-    glBegin(GL_POLYGON);
-    glNormal3f(0.0, 0.0, -1.0);
-    glVertex3f(250.0, 0.0, 420.0);
-    glVertex3f(0.0, 0.0, 420.0);
-    glVertex3f(0.0, 80.0, 420.0);
-    glVertex3f(250.0, 80.0, 420.0);
-    glEnd();
-
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glBegin(GL_POLYGON);
-    glNormal3f(0.0, -1.0, 0.0);
-    glVertex3f(250.0, 110.0, 420.0);
-    glVertex3f(250.0, 110.0, 440.0);
-    glVertex3f(0.0, 110.0, 440.0);
-    glVertex3f(0.0, 110.0, 420.0);
-    glEnd();
-
-    glColor3f(1.0f, 0.98f, 0.82f);
-    glBegin(GL_POLYGON);
-    glNormal3f(0.0, 0.0, -1.0);
-    glVertex3f(250.0, 110.0, 440.0);
-    glVertex3f(250.0, 200.0, 440.0);
-    glVertex3f(0.0, 200.0, 440.0);
-    glVertex3f(0.0, 110.0, 440.0);
-    glEnd();
-
-    glColor3f(0.93f, 0.82f, 0.60f);
-    glBegin(GL_POLYGON);
-    glNormal3f(-1.0, 0.0, 0.0);
-    glVertex3f(250.0, 110.0, 420.0);
-    glVertex3f(250.0, 110.0, 440.0);
-    glVertex3f(250.0, 200.0, 440.0);
-    glVertex3f(250.0, 200.0, 420.0);
-    glEnd();
-
-    glColor3f(0.93f, 0.82f, 0.60f);
-    glBegin(GL_POLYGON);
-    glNormal3f(1.0, 0.0, 0.0);
-    glVertex3f(0.0, 110.0, 420.0);
-    glVertex3f(0.0, 110.0, 440.0);
-    glVertex3f(0.0, 200.0, 440.0);
-    glVertex3f(0.0, 200.0, 420.0);
-    glEnd();
-
-    glColor3f(0.0, 0.0, 0.0);
-
     // Meja
+    glColor3f(0.0, 0.0, 0.0);
     glBegin(GL_POLYGON);
     glNormal3f(0.0, 0.0, -1.0);
     glVertex3f(150.0, 40.0, 50.0);
@@ -381,8 +331,81 @@ void drawScene(void)
     glEnd();
 
 
+    // Urinal 1 (left of divider)
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    // Urinal back panel
+    glPushMatrix();
+    glTranslatef(250.0, 60.0, 5.0);
+    glScalef(20.0, 50.0, 4.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Urinal bowl
+    glPushMatrix();
+    glTranslatef(250.0, 45.0, 12.0);
+    glScalef(16.0, 35.0, 10.0);
+    glutSolidSphere(1.0, 20, 20);
+    glPopMatrix();
+    
+    // Urinal drain pipe
+    glColor3f(0.8f, 0.8f, 0.8f);
+    glPushMatrix();
+    glTranslatef(250.0, 30.0, 12.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glutSolidCylinder(2.5, 30.0, 15, 15);
+    glPopMatrix();
+    
+    // Flush pipe
+    glPushMatrix();
+    glTranslatef(250.0, 85.0, 5.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glutSolidCylinder(2.0, 20.0, 15, 15);
+    glPopMatrix();
+
+
+    // Urinal 2 (right of divider)
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    // Urinal back panel
+    glPushMatrix();
+    glTranslatef(370.0, 60.0, 5.0);
+    glScalef(20.0, 50.0, 4.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Urinal bowl
+    glPushMatrix();
+    glTranslatef(370.0, 45.0, 12.0);
+    glScalef(16.0, 35.0, 10.0);
+    glutSolidSphere(1.0, 20, 20);
+    glPopMatrix();
+    
+    // Urinal drain pipe
+    glColor3f(0.8f, 0.8f, 0.8f);
+    glPushMatrix();
+    glTranslatef(370.0, 30.0, 12.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glutSolidCylinder(2.5, 30.0, 15, 15);
+    glPopMatrix();
+    
+    // Flush pipe
+    glPushMatrix();
+    glTranslatef(370.0, 85.0, 5.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glutSolidCylinder(2.0, 20.0, 15, 15);
+    glPopMatrix();
+
+
     // Stall 1
     glColor3f(0.7f, 0.7f, 0.7f);
+
+    glPushMatrix();
+    // Rotate around the left edge (x=0) of the door
+    glTranslatef(0.0, 0.0, 233.5);  // Move to door center position
+    glRotatef(-doorAngle, 0.0, 1.0, 0.0);  // Rotate around Y axis
+    glTranslatef(0.0, 0.0, -233.5);  // Move back
+
     glBegin(GL_POLYGON);
     glNormal3f(0.0, 0.0, -1.0);  // Front face should point backward (into stall area)
     glVertex3f(120.0, 160.0, 232.0);
@@ -399,8 +422,11 @@ void drawScene(void)
     glVertex3f(120.0, 10.0, 235.0);
     glEnd();
 
+    glPopMatrix();
 
-    // Middle Wall
+
+    // Middle Wall (separator between stall 1 and stall 2)
+    glColor3f(0.7f, 0.7f, 0.7f);
     glBegin(GL_POLYGON);
     glNormal3f(0.0, 0.0, -1.0);
     glVertex3f(120.0, 0.0, 230.0);
@@ -411,7 +437,7 @@ void drawScene(void)
 
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_POLYGON);
-    glNormal3f(1.0, 0.0, 0.0);  // Changed from -1.0 - LEFT wall faces RIGHT
+    glNormal3f(1.0, 0.0, 0.0);
     glVertex3f(120.0, 0.0, 230.0);
     glVertex3f(120.0, 0.0, 440.0);
     glVertex3f(120.0, 160.0, 440.0);
@@ -419,7 +445,7 @@ void drawScene(void)
     glEnd();
 
     glBegin(GL_POLYGON);
-    glNormal3f(-1.0, 0.0, 0.0);  // Changed from 1.0 - RIGHT wall faces LEFT
+    glNormal3f(-1.0, 0.0, 0.0);
     glVertex3f(125.0, 0.0, 230.0);
     glVertex3f(125.0, 0.0, 440.0);
     glVertex3f(125.0, 160.0, 440.0);
@@ -429,6 +455,13 @@ void drawScene(void)
 
     // 2nd Stall
     glColor3f(0.7f, 0.7f, 0.7f);
+
+    glPushMatrix();
+    // Rotate around the left edge (x=125) of the door
+    glTranslatef(125.0, 0.0, 233.5);  // Move to door hinge position
+    glRotatef(-doorAngle, 0.0, 1.0, 0.0);  // Rotate around Y axis
+    glTranslatef(-125.0, 0.0, -233.5);  // Move back
+
     glBegin(GL_POLYGON);
     glNormal3f(0.0, 0.0, -1.0);  // Front face should point backward
     glVertex3f(125.0, 10.0, 232.0);
@@ -445,8 +478,12 @@ void drawScene(void)
     glVertex3f(125.0, 160.0, 235.0);
     glEnd();
 
+    glPopMatrix();
+
+    // Right side wall of stall 2
+    glColor3f(0.7f, 0.7f, 0.7f);
     glBegin(GL_POLYGON);
-    glNormal3f(0.0, 0.0, -1.0);  // Front face
+    glNormal3f(0.0, 0.0, -1.0);
     glVertex3f(245.0, 0.0, 230.0);
     glVertex3f(245.0, 160.0, 230.0);
     glVertex3f(250.0, 160.0, 230.0);
@@ -455,7 +492,7 @@ void drawScene(void)
 
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_POLYGON);
-    glNormal3f(1.0, 0.0, 0.0);  // Changed from -1.0 - LEFT wall faces RIGHT
+    glNormal3f(1.0, 0.0, 0.0);
     glVertex3f(245.0, 0.0, 230.0);
     glVertex3f(245.0, 0.0, 440.0);
     glVertex3f(245.0, 160.0, 440.0);
@@ -463,7 +500,7 @@ void drawScene(void)
     glEnd();
 
     glBegin(GL_POLYGON);
-    glNormal3f(-1.0, 0.0, 0.0);  // Changed from 1.0 - RIGHT wall faces LEFT
+    glNormal3f(-1.0, 0.0, 0.0);
     glVertex3f(250.0, 0.0, 230.0);
     glVertex3f(250.0, 0.0, 440.0);
     glVertex3f(250.0, 160.0, 440.0);
@@ -471,10 +508,139 @@ void drawScene(void)
     glEnd();
 
 
+    // Toilet 1 (in first stall)
+    // Toilet bowl base
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(60.0, 5.0, 390.0);
+    glScalef(20.0, 8.0, 25.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Toilet bowl - curved part
+    glPushMatrix();
+    glTranslatef(60.0, 15.0, 385.0);
+    glScalef(18.0, 12.0, 20.0);
+    glutSolidSphere(1.0, 20, 20);
+    glPopMatrix();
+
+    // Toilet seat rim
+    glColor3f(0.85f, 0.85f, 0.85f);
+    glPushMatrix();
+    glTranslatef(60.0, 22.0, 385.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glutSolidTorus(2.0, 12.0, 15, 25);
+    glPopMatrix();
+
+    // Toilet tank
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(60.0, 35.0, 410.0);
+    glScalef(22.0, 25.0, 12.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Toilet tank lid
+    glColor3f(0.95f, 0.95f, 0.95f);
+    glPushMatrix();
+    glTranslatef(60.0, 48.0, 410.0);
+    glScalef(23.0, 2.0, 13.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+
+    // Toilet 2 (in second stall)
+    // Toilet bowl base
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(185.0, 5.0, 390.0);
+    glScalef(20.0, 8.0, 25.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Toilet bowl - curved part
+    glPushMatrix();
+    glTranslatef(185.0, 15.0, 385.0);
+    glScalef(18.0, 12.0, 20.0);
+    glutSolidSphere(1.0, 20, 20);
+    glPopMatrix();
+
+    // Toilet seat rim
+    glColor3f(0.85f, 0.85f, 0.85f);
+    glPushMatrix();
+    glTranslatef(185.0, 22.0, 385.0);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glutSolidTorus(2.0, 12.0, 15, 25);
+    glPopMatrix();
+
+    // Toilet tank
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(185.0, 35.0, 410.0);
+    glScalef(22.0, 25.0, 12.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Toilet tank lid
+    glColor3f(0.95f, 0.95f, 0.95f);
+    glPushMatrix();
+    glTranslatef(185.0, 48.0, 410.0);
+    glScalef(23.0, 2.0, 13.0);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+
+    // Indent section (back wall recess)
+    glColor3f(1.0f, 0.98f, 0.82f);
+    glBegin(GL_POLYGON);
+    glNormal3f(0.0, 0.0, -1.0);
+    glVertex3f(250.0, 0.0, 420.0);
+    glVertex3f(0.0, 0.0, 420.0);
+    glVertex3f(0.0, 80.0, 420.0);
+    glVertex3f(250.0, 80.0, 420.0);
+    glEnd();
+
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glBegin(GL_POLYGON);
+    glNormal3f(0.0, -1.0, 0.0);
+    glVertex3f(250.0, 110.0, 420.0);
+    glVertex3f(250.0, 110.0, 440.0);
+    glVertex3f(0.0, 110.0, 440.0);
+    glVertex3f(0.0, 110.0, 420.0);
+    glEnd();
+
+    glColor3f(1.0f, 0.98f, 0.82f);
+    glBegin(GL_POLYGON);
+    glNormal3f(0.0, 0.0, -1.0);
+    glVertex3f(250.0, 110.0, 440.0);
+    glVertex3f(250.0, 200.0, 440.0);
+    glVertex3f(0.0, 200.0, 440.0);
+    glVertex3f(0.0, 110.0, 440.0);
+    glEnd();
+
+    glColor3f(0.93f, 0.82f, 0.60f);
+    glBegin(GL_POLYGON);
+    glNormal3f(-1.0, 0.0, 0.0);
+    glVertex3f(250.0, 110.0, 420.0);
+    glVertex3f(250.0, 110.0, 440.0);
+    glVertex3f(250.0, 200.0, 440.0);
+    glVertex3f(250.0, 200.0, 420.0);
+    glEnd();
+
+    glColor3f(0.93f, 0.82f, 0.60f);
+    glBegin(GL_POLYGON);
+    glNormal3f(1.0, 0.0, 0.0);
+    glVertex3f(0.0, 110.0, 420.0);
+    glVertex3f(0.0, 110.0, 440.0);
+    glVertex3f(0.0, 200.0, 440.0);
+    glVertex3f(0.0, 200.0, 420.0);
+    glEnd();
+
+
     //floor & roof
     glColor3f(0.72f, 0.65f, 0.53f);
     glBegin(GL_POLYGON);
-    glNormal3f(0.0, 1.0, 0.0);  // Floor faces up
+    glNormal3f(0.0, 1.0, 0.0);
     glVertex3f(0.0, 0.0, 0.0);
     glVertex3f(0.0, 0.0, 420.0);
     glVertex3f(430.0, 0.0, 420.0);
@@ -483,7 +649,7 @@ void drawScene(void)
 
     glColor3f(0.76f, 0.69f, 0.57f);
     glBegin(GL_POLYGON);
-    glNormal3f(0.0, -1.0, 0.0);  // Ceiling faces down (into room)
+    glNormal3f(0.0, -1.0, 0.0);
     glVertex3f(0.0, 200.0, 440.0);
     glVertex3f(430.0, 200.0, 440.0);
     glVertex3f(430.0, 200.0, 0.0);
@@ -529,7 +695,18 @@ void drawScene(void)
     glVertex3f(430.0, 80.0, 420.0);
     glEnd();
 
+    // Indent section for black strip (y=80 to y=110 at z=420)
+    glColor3f(1.0f, 0.98f, 0.82f);
+    glBegin(GL_POLYGON);
+    glNormal3f(0.0, 0.0, -1.0);
+    glVertex3f(250.0, 110.0, 420.0);
+    glVertex3f(0.0, 110.0, 420.0);
+    glVertex3f(0.0, 80.0, 420.0);
+    glVertex3f(250.0, 80.0, 420.0);
+    glEnd();
+
     // Face 4
+    glColor3f(0.0f, 0.0f, 0.0f);
     glBegin(GL_POLYGON);
     glNormal3f(1.0, 0.0, 0.0);
     glVertex3f(0.0, 110.0, 420.0);
@@ -556,15 +733,6 @@ void drawScene(void)
     glVertex3f(30.0, 80.0, 60.0);
     glEnd();
 
-    // Indent
-    glBegin(GL_POLYGON);
-    glNormal3f(0.0, 0.0, -1.0);
-    glVertex3f(250.0, 110.0, 420.0);
-    glVertex3f(0.0, 110.0, 420.0);
-    glVertex3f(0.0, 80.0, 420.0);
-    glVertex3f(250.0, 80.0, 420.0);
-    glEnd();
-
 
     //kaca
     glColor3f(0.80f, 0.90f, 1.0f);
@@ -582,42 +750,42 @@ void drawScene(void)
 
     glColor3f(1.0, 1.0, 0.9);
 
-    // Light fixture 0 - Right stall
+    // Light fixture 0 - Back left
     if (lightsEnabled[0]) {
         glPushMatrix();
-        glTranslatef(185.0, 195.0, 290.0);
+        glTranslatef(107.5, 195.0, 315.0);
         glutSolidSphere(5.0, 20, 20);
         glPopMatrix();
     }
 
-    // Light fixture 1 - Left stall
+    // Light fixture 1 - Back center
     if (lightsEnabled[1]) {
         glPushMatrix();
-        glTranslatef(62.0, 195.0, 290.0);
+        glTranslatef(215.0, 195.0, 315.0);
         glutSolidSphere(5.0, 20, 20);
         glPopMatrix();
     }
 
-    // Light fixture 2 - Player area
+    // Light fixture 2 - Back right
     if (lightsEnabled[2]) {
         glPushMatrix();
-        glTranslatef(185.0, 195.0, 100.0);
+        glTranslatef(322.5, 195.0, 315.0);
         glutSolidSphere(5.0, 20, 20);
         glPopMatrix();
     }
 
-    // Light fixture 3 - Sink area
+    // Light fixture 3 - Front left
     if (lightsEnabled[3]) {
         glPushMatrix();
-        glTranslatef(90.0, 195.0, 30.0);
+        glTranslatef(107.5, 195.0, 140.0);
         glutSolidSphere(5.0, 20, 20);
         glPopMatrix();
     }
 
-    // Light fixture 4 - Aligned position
+    // Light fixture 4 - Front right
     if (lightsEnabled[4]) {
         glPushMatrix();
-        glTranslatef(300.0, 195.0, 100.0);
+        glTranslatef(322.5, 195.0, 140.0);
         glutSolidSphere(5.0, 20, 20);
         glPopMatrix();
     }
@@ -660,6 +828,12 @@ void keyInput(unsigned char key, int x, int y)
     {
     case 27:
         exit(0);
+        break;
+
+    case ' ':  // Space bar to toggle doors
+        doorsOpen = !doorsOpen;
+        glutTimerFunc(16, animate, 0);  // Start animation (60 FPS)
+        cout << "Doors " << (doorsOpen ? "opening..." : "closing...") << endl;
         break;
 
         // Light intensity controls
@@ -739,6 +913,7 @@ void keyInput(unsigned char key, int x, int y)
         cout << "1-5 - Toggle individual lights (Light 1-5)" << endl;
         cout << "R - Reset all light settings" << endl;
         cout << "H - Show this help" << endl;
+        cout << "SPACE - Open/Close stall doors" << endl;
         cout << "ESC - Exit program" << endl;
         cout << "=====================\n" << endl;
         break;
@@ -746,23 +921,23 @@ void keyInput(unsigned char key, int x, int y)
         // Toggle individual lights
     case '1':
         lightsEnabled[0] = !lightsEnabled[0];
-        cout << "Light 1 (Right Stall): " << (lightsEnabled[0] ? "ON" : "OFF") << endl;
+        cout << "Light 1 (Back Left): " << (lightsEnabled[0] ? "ON" : "OFF") << endl;
         break;
     case '2':
         lightsEnabled[1] = !lightsEnabled[1];
-        cout << "Light 2 (Left Stall): " << (lightsEnabled[1] ? "ON" : "OFF") << endl;
+        cout << "Light 2 (Back Center): " << (lightsEnabled[1] ? "ON" : "OFF") << endl;
         break;
     case '3':
         lightsEnabled[2] = !lightsEnabled[2];
-        cout << "Light 3 (Player Area): " << (lightsEnabled[2] ? "ON" : "OFF") << endl;
+        cout << "Light 3 (Back Right): " << (lightsEnabled[2] ? "ON" : "OFF") << endl;
         break;
     case '4':
         lightsEnabled[3] = !lightsEnabled[3];
-        cout << "Light 4 (Sink): " << (lightsEnabled[3] ? "ON" : "OFF") << endl;
+        cout << "Light 4 (Front Left): " << (lightsEnabled[3] ? "ON" : "OFF") << endl;
         break;
     case '5':
         lightsEnabled[4] = !lightsEnabled[4];
-        cout << "Light 5 (Aligned): " << (lightsEnabled[4] ? "ON" : "OFF") << endl;
+        cout << "Light 5 (Front Right): " << (lightsEnabled[4] ? "ON" : "OFF") << endl;
         break;
 
     default:
@@ -794,6 +969,28 @@ void specialKeyInput(int key, int x, int y)
     }
 
     glutPostRedisplay();
+}
+
+// Animation routine for door opening/closing
+void animate(int value)
+{
+    bool needsUpdate = false;
+
+    if (doorsOpen && doorAngle < maxDoorAngle) {
+        doorAngle += doorSpeed;
+        if (doorAngle > maxDoorAngle) doorAngle = maxDoorAngle;
+        needsUpdate = true;
+    }
+    else if (!doorsOpen && doorAngle > 0.0) {
+        doorAngle -= doorSpeed;
+        if (doorAngle < 0.0) doorAngle = 0.0;
+        needsUpdate = true;
+    }
+
+    if (needsUpdate) {
+        glutPostRedisplay();
+        glutTimerFunc(16, animate, 0);  // Continue animation
+    }
 }
 
 // Main routine.
@@ -832,6 +1029,7 @@ int main(int argc, char** argv)
     cout << "R - Reset all light settings" << endl;
     cout << "H - Show this help" << endl;
     cout << "Arrow Keys - Move camera" << endl;
+    cout << "SPACE - Open/Close stall doors" << endl;
     cout << "ESC - Exit program" << endl;
     cout << "=====================\n" << endl;
 
